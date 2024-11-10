@@ -73,14 +73,15 @@ def calcular_std_hrv(hr):
     return np.std(hrvs)
 
 
-def count_outliers(hr):
+def outliers_percentage(hr):
     q1 = np.percentile(hr, 5)
     q3 = np.percentile(hr, 95)
     outliers = 0
     for value in hr:
         if value < q1 or value > q3:
             outliers += 1
-    return outliers
+    result = outliers / len(hr)
+    return result
 
 
 def get_features(hr_values, time_hr, record_name, diagnosis):
@@ -93,7 +94,7 @@ def get_features(hr_values, time_hr, record_name, diagnosis):
     max_hrv = calcular_max_hrv(hr_values)
     mean_hrv = calcular_mean_hrv(hr_values)
     median_hrv = calcular_median_hrv(hr_values)
-    outliers = count_outliers(hr_values)
+    outliers_percent = outliers_percentage(hr_values)
     std_hrv = calcular_std_hrv(hr_values)
 
     # HR Slope: Representa cambios repentinos en la frecuencia cardíaca
@@ -159,6 +160,7 @@ def get_features(hr_values, time_hr, record_name, diagnosis):
         'highest_heart_rate': highest_hr,
         'lowest_heart_rate': lowest_hr,
         'mean_heart_rate': mean_hr,
+        'median_heart_rate': median_hr,
         'standard_deviation_hr': std_hr,
         'minimum_hrv': min_hrv,
         'maximum_hrv': max_hrv,
@@ -166,6 +168,7 @@ def get_features(hr_values, time_hr, record_name, diagnosis):
         'median_hrv': median_hrv,
         'standard_deviation_hrv': std_hrv,
         'mean_hr_slope': mean_hr_slope,
+        'tendency_slope': trend_slope,
         'Max_hr_slope': max_hr_slope,
         'standard_deviation_hr_slope': std_hr_slope,
         'vlf_power': vlf_power,
@@ -179,7 +182,7 @@ def get_features(hr_values, time_hr, record_name, diagnosis):
         'tendency_standard_deviation': std_deviation,
         'approximation_entropy': approximation_entropy,
         'sample_entropy': sample_entropy,
-        'outliers': outliers
+        'outliers_percentage': outliers_percent
     }
 
     return result
