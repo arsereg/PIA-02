@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.fft import fft, fftfreq
-from scipy.signal import find_peaks
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.impute import SimpleImputer
 import antropy as ant
@@ -135,8 +135,47 @@ def get_features(hr_values, time_hr, record_name, diagnosis):
         'lowest_heart_rate',
     ]
 
+
+
+
     result[columns_to_reduce] = result[columns_to_reduce].apply(lambda x: x/100)
-    result.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+    important_features = [
+        'minimum_hrv',
+        'maximum_hrv',
+        'standard_deviation_hrv',
+        'mean_hr_slope',
+        'tendency_slope',
+        'lowest_heart_rate',
+        'vlf_power',
+        'lf_power',
+        'hf_power',
+        'approximation_entropy'
+    ]
+
+    features = result[important_features]
+    features.replace([np.inf, -np.inf], np.nan, inplace=True)
     imputer = SimpleImputer(strategy='median')
-    result = pd.DataFrame(imputer.fit_transform(result), columns=result.columns)
-    return result.iloc[0].to_dict()
+    # scaler = StandardScaler()
+    features = imputer.fit_transform(features)
+    # features = scaler.fit_transform(features)
+    df = pd.DataFrame(features, columns=important_features)
+    df['diagnosis'] = result['diagnosis']
+    return df.iloc[0].to_dict()
+
+
+def scale_for_training(df):
+    from sklearn.preprocessing import StandardScaler
+    import joblib
+    imputer = SimpleImputer(strategy='median')
+    scaler = StandardScaler()
+    df = imputer.fit_transform(df)
+    df = scaler.fit_transform(df)
+    joblib.dump(scaler, 'scaler.pkl')
+    return df
+
+def scale_for_prediction(df):
+    import joblib
+    scaler = joblib.load('scaler.pkl')
+    df = scaler.transform(df)
+    return df
